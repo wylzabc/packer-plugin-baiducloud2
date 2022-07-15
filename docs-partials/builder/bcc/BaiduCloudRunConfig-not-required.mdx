@@ -1,0 +1,75 @@
+<!-- Code generated from the comments of the BaiduCloudRunConfig struct in builder/bcc/run_config.go; DO NOT EDIT MANUALLY -->
+
+- `associate_public_ip_address` (bool) - Whether allocate public ip(eip) to your instance.
+  Default value is false. If you set this field `true`,
+  please set the `network_capacity_in_mbps` field to allocate
+  public network bandwith
+
+- `use_default_network` (bool) - Use default vpc, subnet, securitygroup, if the field is set `true`.
+  if the field is set `false` or not set, the build process will use
+  a vpc, subnet, securitygroup that you offer or create a temporary vpc,
+  subnet, securitygroup, which will be deleted after building.
+
+- `instance_name` (string) - The name of instance which will be launch. Usually it will be deleted
+  after build, cancellation or error
+
+- `description` (string) - The description of instance
+
+- `security_group_id` (string) - ID of the security group to which a newly
+  created instance belongs. Mutual access is allowed between instances in one
+  security group. If not specified, the newly created instance will be added
+  to the default security group. If the default group doesn’t exist, or the
+  number of instances in it has reached the maximum limit, a new security
+  group will be created automatically.
+
+- `security_group_name` (string) - The security group name
+
+- `internet_charge_type` (string) - Internet charge type
+
+- `eip_name` (string) - Eip name
+
+- `network_capacity_in_mbps` (int) - Eip network bandwith
+
+- `root_disk_size_in_gb` (int) - RootDiskSizeInGb
+
+- `root_disk_storage_type` (string) - RootDiskStorageType
+
+- `vpc_id` (string) - The VPC id for your build process will perform in. If the field
+  `use_default_network` is used. This field will be invalid
+
+- `vpc_name` (string) - The VPC name. If the field `use_default_network` and `vpc_id`
+  both are unset, the build process will create a temporary
+  vpc network with the name of `vpc_name`
+
+- `vpc_cidr_block` (string) - Cidr block for VPC. If the temporary vpc network is created, the
+  `vpc_cidr_block` will be used to set cidr for vpc
+
+- `subnet_id` (string) - The id of subnet where the bcc instance will be launched on
+
+- `subnet_cidr_block` (string) - The cidr block of subnet which will be created
+  if subnet id is not specified
+
+- `subnet_name` (string) - The subnet name which will be created if subnet id is not specified
+
+- `keypair_id` (string) - Keypair id for ssh. baiducloud use keypair id as unique identification.
+  And maybe there more than one keypairs have the same name. So please
+  use `keypair_id` instead of `ssh_keypair_name`
+
+- `data_disks` ([]BaiduCloudDataDisk) - Add one or more data disks to the instance before creating the image.
+  The data disks allow for the following argument:
+  -  `storage_type` - Type of the data disk.
+  -  `cds_size_in_gb` - Size of the data disk.
+  -  `snapshot_id` - Id of the snapshot for a data disk.
+
+- `run_tags` (map[string]string) - Key/value pair tags to apply to the instance that is *launched*
+  to create the image.
+
+- `user_data` (string) - User data to apply when launching the instance.
+  It is often more convenient to use user_data_file, instead.
+  Packer will not automatically wait for a user script to finish before
+  shutting down the instance this must be handled in a provisioner.
+
+- `user_data_file` (string) - Path to a file that will be used for the user
+  data when launching the instance.
+
+<!-- End of code generated from the comments of the BaiduCloudRunConfig struct in builder/bcc/run_config.go; -->
