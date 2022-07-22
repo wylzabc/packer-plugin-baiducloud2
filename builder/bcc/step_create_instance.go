@@ -5,12 +5,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"time"
 
 	"github.com/baidubce/bce-sdk-go/model"
 	"github.com/baidubce/bce-sdk-go/services/bcc"
 	"github.com/baidubce/bce-sdk-go/services/bcc/api"
-	"github.com/baidubce/bce-sdk-go/services/eip"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/uuid"
@@ -42,7 +40,6 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 	if err != nil {
 		return halt(state, err, "Failed to get `CreateInstanceBySpecArgs`")
 	}
-
 	createResult, err := client.CreateInstanceBySpec(createInstanceBySpecArgs)
 	if err != nil {
 		return halt(state, err, "Failed to create instance")
@@ -79,33 +76,36 @@ func (s *stepCreateInstance) Cleanup(state multistep.StateBag) {
 		return
 	}
 
+	ctx := context.TODO()
+
 	// clean up message
-	cleanUpMessage(state, "instance")
+	cleanUpMessage(state, "instance and relate resource")
 
 	client := state.Get("client").(*bcc.Client)
 	ui := state.Get("ui").(packersdk.Ui)
-	instance := state.Get("instance").(*api.InstanceModel)
+	// instance := state.Get("instance").(*api.InstanceModel)
 
-	err := client.DeleteInstance(s.instanceId)
+	err := Retry(ctx, func(ctx context.Context) error {
+		return client.DeleteInstanceWithRelateResource(s.instanceId, &api.DeleteInstanceWithRelateResourceArgs{
+			RelatedReleaseFlag: true,
+		})
+	})
 	if err != nil {
 		ui.Error(fmt.Sprintf("Failed to clean up instance %s: %s", s.instanceId, err))
 	}
 
-	if instance.PublicIP != "" {
-		// todo clean eip
-		time.Sleep(30 * time.Second)
-		cleanUpMessage(state, "eip")
-		eipClient := state.Get("eip_client").(*eip.Client)
-		if err != nil {
-			ui.Error(fmt.Sprintf("Failed to create eip client"))
-			return
-		}
-		// clean eip
-		err = eipClient.DeleteEip(instance.PublicIP, "")
-		if err != nil {
-			ui.Error(fmt.Sprintf("Failed to clean up eip: %s", instance.PublicIP))
-		}
-	}
+	// if instance.PublicIP != "" {
+	// 	// todo clean eip
+	// 	cleanUpMessage(state, "eip")
+	// 	eipClient := state.Get("eip_client").(*eip.Client)
+	// 	// clean eip
+	// 	err := Retry(ctx, func(ctx context.Context) error {
+	// 		return eipClient.DeleteEip(instance.PublicIP, "")
+	// 	})
+	// 	if err != nil {
+	// 		ui.Error(fmt.Sprintf("Failed to clean up eip: %s", instance.PublicIP))
+	// 	}
+	// }
 }
 
 func (s *stepCreateInstance) getCreateInstanceBySpecArgs(state multistep.StateBag) (*api.CreateInstanceBySpecArgs, error) {
@@ -114,7 +114,14 @@ func (s *stepCreateInstance) getCreateInstanceBySpecArgs(state multistep.StateBa
 	keypairId := config.KeypairId
 	if len(keypairId) == 0 {
 		// Use temporary keypair
-		keypairId = state.Get("temporary_key_pair_id").(string)
+		if _, ok := state.GetOk("temporary_key_pair_id"); ok {
+			keypairId = state.Get("temporary_key_pair_id").(string)
+		}
+	}
+
+	password := config.Comm.SSHPassword
+	if password == "" && config.Comm.WinRMPassword != "" {
+		password = config.Comm.WinRMPassword
 	}
 
 	userData, err := s.getUserData(state)
@@ -122,22 +129,18 @@ func (s *stepCreateInstance) getCreateInstanceBySpecArgs(state multistep.StateBa
 		return nil, err
 	}
 
-	var dataDisks []api.CreateCdsModel
-	for _, disk := range config.DataDisks {
-		var datadisk api.CreateCdsModel
-		datadisk.CdsSizeInGB = disk.CdsSizeInGB
-		datadisk.StorageType = api.StorageType(disk.StorageType)
-		datadisk.SnapShotId = disk.SnapShotId
-		dataDisks = append(dataDisks, datadisk)
-	}
+	// var dataDisks []api.CreateCdsModel
+	// for _, disk := range config.DataDisks {
+	// 	var datadisk api.CreateCdsModel
+	// 	datadisk.CdsSizeInGB = disk.CdsSizeInGB
+	// 	datadisk.StorageType = api.StorageType(disk.StorageType)
+	// 	datadisk.SnapShotId = disk.SnapShotId
+	// 	dataDisks = append(dataDisks, datadisk)
+	// }
 
 	var tags []model.TagModel
 	for k, v := range s.Tags {
 		tags = append(tags, model.TagModel{TagKey: k, TagValue: v})
-	}
-
-	if s.InstanceName == "" {
-		s.InstanceName = fmt.Sprintf("packer-%s", uuid.TimeOrderedUUID()[:8])
 	}
 
 	args := &api.CreateInstanceBySpecArgs{
@@ -151,12 +154,18 @@ func (s *stepCreateInstance) getCreateInstanceBySpecArgs(state multistep.StateBa
 		ZoneName:            s.ZoneName,
 		PurchaseCount:       1,
 		Name:                s.InstanceName,
-		AdminPass:           config.Comm.SSHPassword,
 		ClientToken:         uuid.TimeOrderedUUID(),
-		KeypairId:           keypairId,
-		CreateCdsList:       dataDisks,
-		UserData:            userData,
-		Tags:                tags,
+		// CreateCdsList:       dataDisks,
+		UserData: userData,
+		Tags:     tags,
+	}
+
+	if password != "" {
+		args.AdminPass = password
+	}
+
+	if keypairId != "" {
+		args.KeypairId = keypairId
 	}
 
 	if !s.UseDefaultNetwork {

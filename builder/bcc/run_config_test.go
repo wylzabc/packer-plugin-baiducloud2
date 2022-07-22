@@ -237,15 +237,15 @@ func TestRunConfigPrepare_Eip(t *testing.T) {
 
 }
 
-func TestRunConfigPrepare_DataDisk(t *testing.T) {
-	c := getTestRunConfig()
+// func TestRunConfigPrepare_DataDisk(t *testing.T) {
+// 	c := getTestRunConfig()
 
-	c.DataDisks = []BaiduCloudDataDisk{
-		{
-			SnapShotId: "",
-		},
-	}
-	if errs := c.Prepare(nil); len(errs) != 1 {
-		t.Fatalf("Should raise an error: %s", errs)
-	}
-}
+// 	c.DataDisks = []BaiduCloudDataDisk{
+// 		{
+// 			SnapShotId: "",
+// 		},
+// 	}
+// 	if errs := c.Prepare(nil); len(errs) != 1 {
+// 		t.Fatalf("Should raise an error: %s", errs)
+// 	}
+// }

@@ -1,4 +1,4 @@
-//go:generate packer-sdc mapstructure-to-hcl2 -type Config,BaiduCloudDataDisk
+//go:generate packer-sdc mapstructure-to-hcl2 -type Config
 
 package bcc
 
@@ -104,7 +104,7 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			Debug:        b.config.PackerDebug,
 			Comm:         &b.config.Comm,
 			KeyPairId:    b.config.KeypairId,
-			DebugKeyPath: fmt.Sprintf("ecs_%s.pem", b.config.PackerBuildName),
+			DebugKeyPath: fmt.Sprintf("bcc_%s.pem", b.config.PackerBuildName),
 			Description:  "keypair for packer",
 		},
 		&stepConfigVPC{

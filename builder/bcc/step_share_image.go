@@ -30,7 +30,10 @@ func (s *stepShareImage) Run(ctx context.Context, state multistep.StateBag) mult
 			return halt(state, err, fmt.Sprintf("Failed to get bcc client of region(%s)", region))
 		}
 		for _, shareAccoutArgs := range shareAccountArgsList {
-			if err := client.ShareImage(imageId, shareAccoutArgs); err != nil {
+			err := Retry(ctx, func(ctx context.Context) error {
+				return client.ShareImage(imageId, shareAccoutArgs)
+			})
+			if err != nil {
 				return halt(state, err, fmt.Sprintf("Failed to share image(%s) of region(%s) to account(%+v)", imageId, region, shareAccoutArgs))
 			} else {
 				ui.Message(fmt.Sprintf("Success to share image(%s) of region(%s) to account(%+v)", imageId, region, shareAccoutArgs))
@@ -57,6 +60,7 @@ func (s *stepShareImage) Cleanup(state multistep.StateBag) {
 	ui := state.Get("ui").(packersdk.Ui)
 	config := state.Get("config").(*Config)
 	baiduCloudImages := state.Get("baiducloud_images").(map[string]string)
+	ctx := context.TODO()
 
 	ui.Error("Cancel image share because cancellations or error...")
 
@@ -66,7 +70,10 @@ func (s *stepShareImage) Cleanup(state multistep.StateBag) {
 			ui.Error(fmt.Sprintf("Failed to get bcc client of region(%s): %s", region, err))
 		}
 		for _, shareAccoutArgs := range shareAccountArgsList {
-			if err := client.UnShareImage(imageId, shareAccoutArgs); err != nil {
+			err := Retry(ctx, func(ctx context.Context) error {
+				return client.UnShareImage(imageId, shareAccoutArgs)
+			})
+			if err != nil {
 				ui.Error(fmt.Sprintf("Failed to cancel share image(%s) of region(%s) to account(%+v)", imageId, region, shareAccoutArgs))
 			} else {
 				ui.Message(fmt.Sprintf("Success to cancel share image(%s) of region(%s) to account(%+v)", imageId, region, shareAccoutArgs))

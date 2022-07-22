@@ -15,13 +15,13 @@ import (
 // The data disk to amount on instance if you use this struct,
 // for security, you will need to deal with
 // the volume by yourself
-type BaiduCloudDataDisk struct {
-	CdsSizeInGB int    `mapstructure:"cds_size_in_gb"`
-	StorageType string `mapstructure:"storage_type"`
-	// The snapshot id for cds data disk. The field must be specified
-	// or the cds data disk will not be created
-	SnapShotId string `mapstructure:"snapshot_id"`
-}
+// type BaiduCloudDataDisk struct {
+// 	CdsSizeInGB int    `mapstructure:"cds_size_in_gb"`
+// 	StorageType string `mapstructure:"storage_type"`
+// 	// The snapshot id for cds data disk. The field must be specified
+// 	// or the cds data disk will not be created
+// 	SnapShotId string `mapstructure:"snapshot_id"`
+// }
 
 type BaiduCloudRunConfig struct {
 	// Whether allocate public ip(eip) to your instance.
@@ -54,15 +54,17 @@ type BaiduCloudRunConfig struct {
 	SecurityGroupId string `mapstructure:"security_group_id" required:"false"`
 	// The security group name
 	SecurityGroupName string `mapstructure:"security_group_name" required:"false"`
-	// Internet charge type
+	// Internet charge type, there are two type: `BANDWIDTH_POSTPAID_BY_HOUR` and
+	// `TRAFFIC_POSTPAID_BY_HOUR`.
+	// The default type is `BANDWIDTH_POSTPAID_BY_HOUR`
 	InternetChargeType string `mapstructure:"internet_charge_type" required:"false"`
 	// Eip name
 	EipName string `mapstructure:"eip_name" required:"false"`
 	// Eip network bandwith
 	NetworkCapacityInMbps int `mapstructure:"network_capacity_in_mbps" required:"false"`
-	// RootDiskSizeInGb
+	// RootDiskSizeInGb, if not provided, the default value is 20G
 	RootDiskSizeInGb int `mapstructure:"root_disk_size_in_gb" required:"false"`
-	// RootDiskStorageType
+	// RootDiskStorageType, if not provided, the default type is hp1
 	RootDiskStorageType string `mapstructure:"root_disk_storage_type" required:"false"`
 	// The VPC id for your build process will perform in. If the field
 	// `use_default_network` is used. This field will be invalid
@@ -90,7 +92,7 @@ type BaiduCloudRunConfig struct {
 	// -  `storage_type` - Type of the data disk.
 	// -  `cds_size_in_gb` - Size of the data disk.
 	// -  `snapshot_id` - Id of the snapshot for a data disk.
-	DataDisks []BaiduCloudDataDisk `mapstructure:"data_disks"`
+	// DataDisks []BaiduCloudDataDisk `mapstructure:"data_disks"`
 	// Key/value pair tags to apply to the instance that is *launched*
 	// to create the image.
 	RunTags map[string]string `mapstructure:"run_tags" required:"false"`
@@ -229,13 +231,21 @@ func (c *BaiduCloudRunConfig) Prepare(ctx *interpolate.Context) []error {
 		}
 	}
 
-	if len(c.DataDisks) > 0 {
-		for _, disk := range c.DataDisks {
-			if disk.SnapShotId == "" {
-				errs = append(errs, errors.New("the 'snapshot_id' in 'data_disks' should be provided"))
-			}
-		}
+	if c.RootDiskSizeInGb < 20 {
+		c.RootDiskSizeInGb = 20
 	}
+
+	if c.InstanceName == "" {
+		c.InstanceName = packerId
+	}
+
+	// if len(c.DataDisks) > 0 {
+	// 	for _, disk := range c.DataDisks {
+	// 		if disk.SnapShotId == "" {
+	// 			errs = append(errs, errors.New("the 'snapshot_id' in 'data_disks' should be provided"))
+	// 		}
+	// 	}
+	// }
 
 	return errs
 }

@@ -29,7 +29,7 @@ func (s *stepConfigSubnet) Run(ctx context.Context, state multistep.StateBag) mu
 	ui := state.Get("ui").(packersdk.Ui)
 
 	if len(s.SubnetId) != 0 {
-		ui.Say(fmt.Sprintf("Trying to use existing subnet(%s)...", s.SubnetId))
+		ui.Say(fmt.Sprintf("Trying to check existing subnet(%s)...", s.SubnetId))
 		subnetDetail, err := client.GetSubnetDetail(s.SubnetId)
 		if err != nil {
 			return halt(state, err, fmt.Sprintf("Failed to get subnet(%s), it may not exist: %s", s.SubnetId, err))
@@ -41,7 +41,12 @@ func (s *stepConfigSubnet) Run(ctx context.Context, state multistep.StateBag) mu
 	// create new subnet
 	ui.Say("Starting to create new subnet...")
 
-	createResult, err := client.CreateSubnet(s.getCreateSubnetArgs(state))
+	var createResult *vpc.CreateSubnetResult
+	err := Retry(ctx, func(ctx context.Context) error {
+		var e error
+		createResult, e = client.CreateSubnet(s.getCreateSubnetArgs(state))
+		return e
+	})
 	if err != nil {
 		return halt(state, err, "Failed to create subnet")
 	}
@@ -61,10 +66,13 @@ func (s *stepConfigSubnet) Cleanup(state multistep.StateBag) {
 
 	client := state.Get("vpc_client").(*vpc.Client)
 	ui := state.Get("ui").(packersdk.Ui)
+	ctx := context.TODO()
 
 	cleanUpMessage(state, "subnet")
 
-	err := client.DeleteSubnet(s.SubnetId, uuid.TimeOrderedUUID())
+	err := Retry(ctx, func(ctx context.Context) error {
+		return client.DeleteSubnet(s.SubnetId, uuid.TimeOrderedUUID())
+	})
 	if err != nil {
 		ui.Error(fmt.Sprintf("Failed to delete subnet(%s), please clean it manully: %s", s.SubnetId, err))
 	}

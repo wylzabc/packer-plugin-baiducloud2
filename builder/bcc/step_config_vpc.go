@@ -29,7 +29,7 @@ func (s *stepConfigVPC) Run(ctx context.Context, state multistep.StateBag) multi
 
 	if len(s.VpcId) != 0 {
 		// check whether the specified vpi id exists
-		ui.Say(fmt.Sprintf("Trying to use existing VPC(%s)", s.VpcId))
+		ui.Say(fmt.Sprintf("Trying to check existing VPC(%s)...", s.VpcId))
 		vpcDetail, err := client.GetVPCDetail(s.VpcId)
 		if err != nil {
 			return halt(state, err, fmt.Sprintf("Failed to get specified vpc(%s)", s.VpcId))
@@ -43,7 +43,12 @@ func (s *stepConfigVPC) Run(ctx context.Context, state multistep.StateBag) multi
 	// create vpc
 	ui.Say("Starting to create vpc...")
 
-	createResult, err := client.CreateVPC(s.getCreateVpcArgs())
+	var createResult *vpc.CreateVPCResult
+	err := Retry(ctx, func(ctx context.Context) error {
+		var e error
+		createResult, e = client.CreateVPC(s.getCreateVpcArgs())
+		return e
+	})
 	if err != nil {
 		return halt(state, err, "Failed to create vpc")
 	}
@@ -67,8 +72,11 @@ func (s *stepConfigVPC) Cleanup(state multistep.StateBag) {
 
 	client := state.Get("vpc_client").(*vpc.Client)
 	ui := state.Get("ui").(packersdk.Ui)
+	ctx := context.TODO()
 
-	err := client.DeleteVPC(s.VpcId, uuid.TimeOrderedUUID())
+	err := Retry(ctx, func(ctx context.Context) error {
+		return client.DeleteVPC(s.VpcId, uuid.TimeOrderedUUID())
+	})
 	if err != nil {
 		ui.Error(fmt.Sprintf("Failed to delete vpc(%s), please clean it manually: %s", s.VpcId, err))
 	}

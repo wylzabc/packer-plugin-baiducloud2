@@ -49,7 +49,7 @@ func (a *Artifact) String() string {
 	}
 	sort.Strings(parts)
 
-	return fmt.Sprintf("Baiducloud images(%s) were created.\n\n", strings.Join(parts, "\n"))
+	return fmt.Sprintf("Baiducloud images were created:\n\n%s", strings.Join(parts, "\n"))
 }
 
 func (a *Artifact) State(name string) interface{} {

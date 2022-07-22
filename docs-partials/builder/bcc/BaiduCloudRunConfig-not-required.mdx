@@ -55,13 +55,13 @@
   And maybe there more than one keypairs have the same name. So please
   use `keypair_id` instead of `ssh_keypair_name`
 
-- `data_disks` ([]BaiduCloudDataDisk) - Add one or more data disks to the instance before creating the image.
+- `run_tags` (map[string]string) - Add one or more data disks to the instance before creating the image.
   The data disks allow for the following argument:
   -  `storage_type` - Type of the data disk.
   -  `cds_size_in_gb` - Size of the data disk.
   -  `snapshot_id` - Id of the snapshot for a data disk.
-
-- `run_tags` (map[string]string) - Key/value pair tags to apply to the instance that is *launched*
+  DataDisks []BaiduCloudDataDisk `mapstructure:"data_disks"`
+  Key/value pair tags to apply to the instance that is *launched*
   to create the image.
 
 - `user_data` (string) - User data to apply when launching the instance.

@@ -30,8 +30,13 @@ func (s *stepRemoteCopyImage) Run(ctx context.Context, state multistep.StateBag)
 	remoteCopyImageArgs := s.getRemoteCopyImageArgs(state)
 
 	ui.Say(fmt.Sprintf("Trying to copy image(%s) to region: %s", imageId, strings.Join(remoteCopyImageArgs.DestRegion, ",")))
-	remoteCopyResult, err := client.RemoteCopyImageReturnImageIds(imageId, remoteCopyImageArgs)
 
+	var remoteCopyResult *api.RemoteCopyImageResult
+	err := Retry(ctx, func(ctx context.Context) error {
+		var e error
+		remoteCopyResult, e = client.RemoteCopyImageReturnImageIds(imageId, remoteCopyImageArgs)
+		return e
+	})
 	if err != nil {
 		return halt(state, err, "Failed to copy image")
 	}

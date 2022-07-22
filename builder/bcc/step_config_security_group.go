@@ -31,7 +31,7 @@ func (s *stepConfigSecurityGroup) Run(ctx context.Context, state multistep.State
 
 	if len(s.SecurityGroupId) != 0 {
 		// todo check security group
-		ui.Say(fmt.Sprintf("Starting to check security group(%s)", s.SecurityGroupId))
+		ui.Say(fmt.Sprintf("Trying to check security group(%s)...", s.SecurityGroupId))
 		listResult, err := client.ListSecurityGroup(s.getListSecurityGroupArgs())
 		if err != nil {
 			return halt(state, err, "Failed to list security group")
@@ -52,7 +52,12 @@ func (s *stepConfigSecurityGroup) Run(ctx context.Context, state multistep.State
 	// create security group
 	ui.Say("Starting to create security group...")
 
-	createSecurityGroupResult, err := client.CreateSecurityGroup(s.getCreateSecurityGroupArgs())
+	var createSecurityGroupResult *api.CreateSecurityGroupResult
+	err := Retry(ctx, func(ctx context.Context) error {
+		var e error
+		createSecurityGroupResult, e = client.CreateSecurityGroup(s.getCreateSecurityGroupArgs())
+		return e
+	})
 	if err != nil {
 		return halt(state, err, "Failed to create security group")
 	}
@@ -76,10 +81,13 @@ func (s *stepConfigSecurityGroup) Cleanup(state multistep.StateBag) {
 
 	client := state.Get("client").(*bcc.Client)
 	ui := state.Get("ui").(packersdk.Ui)
+	ctx := context.TODO()
 
-	err := client.DeleteSecurityGroup(s.SecurityGroupId)
+	err := Retry(ctx, func(ctx context.Context) error {
+		return client.DeleteSecurityGroup(s.SecurityGroupId)
+	})
 	if err != nil {
-		ui.Error(fmt.Sprintf("Failed to delete security group(%s), you can delete it manually", s.SecurityGroupId))
+		ui.Error(fmt.Sprintf("Failed to delete security group(%s), you can delete it manually: %s", s.SecurityGroupId, err))
 	}
 }
 

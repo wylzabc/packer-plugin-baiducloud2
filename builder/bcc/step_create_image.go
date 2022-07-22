@@ -22,14 +22,19 @@ func (s *stepCreateImage) Run(ctx context.Context, state multistep.StateBag) mul
 
 	ui.Say("Starting to create custom image...")
 
-	createImageResult, err := client.CreateImage(s.getCreateImageArgs(state))
+	var createImageResult *api.CreateImageResult
+	err := Retry(ctx, func(ctx context.Context) error {
+		var e error
+		createImageResult, e = client.CreateImage(s.getCreateImageArgs(state))
+		return e
+	})
 	if err != nil {
 		return halt(state, err, "Failed to creating image")
 	}
 
 	imageId := createImageResult.ImageId
 	ui.Say(fmt.Sprintf("Waiting to image(%s) status available...", imageId))
-	err = WaitForImage(ctx, client, imageId, api.ImageStatusAvailable, 600)
+	err = WaitForImage(ctx, client, imageId, api.ImageStatusAvailable, 1800)
 	if err != nil {
 		return halt(state, err, fmt.Sprintf("Failed to creating image(%s)", imageId))
 	}
@@ -60,7 +65,10 @@ func (s *stepCreateImage) Cleanup(state multistep.StateBag) {
 	client := state.Get("client").(*bcc.Client)
 	ui := state.Get("ui").(packersdk.Ui)
 
-	err := client.DeleteImage(s.imageId)
+	ctx := context.TODO()
+	err := Retry(ctx, func(ctx context.Context) error {
+		return client.DeleteImage(s.imageId)
+	})
 	if err != nil {
 		ui.Error(fmt.Sprintf("Failed to clean up image %s: %s", s.imageId, err))
 	}

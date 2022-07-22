@@ -107,9 +107,13 @@ func (s *stepConfigKeyPair) Cleanup(state multistep.StateBag) {
 	client := state.Get("client").(*bcc.Client)
 	ui := state.Get("ui").(packersdk.Ui)
 
+	ctx := context.TODO()
+
 	ui.Say("Cleaning up 'keypair'...")
 
-	err := client.DeleteKeypair(&api.DeleteKeypairArgs{KeypairId: s.KeyPairId})
+	err := Retry(ctx, func(ctx context.Context) error {
+		return client.DeleteKeypair(&api.DeleteKeypairArgs{KeypairId: s.KeyPairId})
+	})
 	if err != nil {
 		ui.Error(fmt.Sprintf("Failed to cleanup keypair(%s), please delete it manually: %s", s.KeyPairId, err))
 	}

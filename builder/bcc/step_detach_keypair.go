@@ -27,9 +27,11 @@ func (s *stepDetachKeyPair) Run(ctx context.Context, state multistep.StateBag) m
 
 	ui.Say(fmt.Sprintf("Trying to detach temporary keypair(%s)...", keyPairId))
 
-	err := client.DetachKeypair(&api.DetachKeypairArgs{
-		KeypairId:   keyPairId,
-		InstanceIds: []string{instanceId},
+	err := Retry(ctx, func(ctx context.Context) error {
+		return client.DetachKeypair(&api.DetachKeypairArgs{
+			KeypairId:   keyPairId,
+			InstanceIds: []string{instanceId},
+		})
 	})
 	if err != nil {
 		return halt(state, err, "Failed to detach keypair")

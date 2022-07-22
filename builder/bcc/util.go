@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/baidubce/bce-sdk-go/bce"
 	"github.com/baidubce/bce-sdk-go/services/bcc"
 	"github.com/baidubce/bce-sdk-go/services/bcc/api"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
@@ -44,6 +45,15 @@ func Retry(ctx context.Context, fn func(context.Context) error) error {
 	return retry.Config{
 		Tries: 60,
 		ShouldRetry: func(err error) bool {
+			e, ok := err.(*bce.BceServiceError)
+			if !ok {
+				return false
+			}
+			if e.Code == "Instance.DeleteServerFailException" || e.Code == "SecurityGroup.InstancesAssociatedSecurityGroupCanNotBeDeleted" ||
+				e.Code == "SECURITYGROUP_INUSE" || e.Code == "NotAllowDeleteVpc" || e.Code == "NotAllowOperateSubnet" ||
+				e.Code == "ResourceNeedRelease" || e.Code == "ServiceInternalError" {
+				return true
+			}
 			return false
 		},
 		RetryDelay: (&retry.Backoff{
