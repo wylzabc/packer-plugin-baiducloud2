@@ -71,12 +71,15 @@ func (s *stepRemoteCopyImage) Cleanup(state multistep.StateBag) {
 	baiduCloudImages := state.Get("baiducloud_images").(map[string]string)
 	ui := state.Get("ui").(packersdk.Ui)
 
+	ctx := context.TODO()
+
 	ui.Say("Trying to cancel remote copy or deleting images had been copied...")
 
 	for region, imageId := range baiduCloudImages {
 		if region == config.BaiduCloudRegion {
 			continue
 		}
+
 		client, err := config.ClientWithRegion(region)
 		if err != nil {
 			ui.Error(fmt.Sprintf("Failed to get bcc client of region(%s)", region))
@@ -85,24 +88,27 @@ func (s *stepRemoteCopyImage) Cleanup(state multistep.StateBag) {
 
 		imageDetail, err := client.GetImageDetail(imageId)
 		if err != nil {
-			ui.Error(fmt.Sprintf("Failed to get image image(%s)", imageId))
+			ui.Error(fmt.Sprintf("Failed to get image detail(%s)", imageId))
 			continue
 		}
-		if imageDetail.Image.Status == api.ImageStatusAvailable {
-			// delete the image copied from remote
-			if err := client.DeleteImage(imageId); err != nil {
-				ui.Error(fmt.Sprintf("Failed to delete image(%s) of region(%s)", imageId, region))
-			} else {
-				ui.Message(fmt.Sprintf("Success to delete image(%s) of region(%s)", imageId, region))
-			}
-		} else {
+
+		// cancel remote copy
+		if imageDetail.Image.Status != api.ImageStatusAvailable {
 			// cancel remote copy image
-			if err := client.CancelRemoteCopyImage(imageId); err != nil {
-				ui.Error(fmt.Sprintf("Failed to cancel remote copy of image(%s)", imageId))
-			} else {
-				ui.Message(fmt.Sprintf("Success to cancel remote copy of image(%s)", imageId))
+			if err := client.CancelRemoteCopyImage(imageId); err == nil {
+				ui.Message(fmt.Sprintf("Success to cancel remote copy image(%s) to region(%s)", imageId, region))
+				continue
 			}
 		}
+		// delete remote image
+		err = Retry(ctx, func(ctx context.Context) error {
+			return client.DeleteImage(imageId)
+		})
+		if err != nil {
+			ui.Error(fmt.Sprintf("Failed to delete image(%s) of region(%s)", imageId, region))
+			continue
+		}
+		ui.Message(fmt.Sprintf("Success to delete image(%s) of region(%s)", imageId, region))
 	}
 }
 
