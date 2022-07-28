@@ -157,7 +157,6 @@ func (s *stepCreateInstance) getCreateInstanceBySpecArgs(state multistep.StateBa
 		ClientToken:         uuid.TimeOrderedUUID(),
 		// CreateCdsList:       dataDisks,
 		UserData: userData,
-		Tags:     tags,
 	}
 
 	if password != "" {
@@ -183,6 +182,11 @@ func (s *stepCreateInstance) getCreateInstanceBySpecArgs(state multistep.StateBa
 		}
 		args.NetWorkCapacityInMbps = s.NetworkCapacityInMbps
 		args.InternetChargeType = s.InternetChargeType
+	}
+
+	if len(tags) > 0 {
+		args.Tags = tags
+		args.RelationTag = true
 	}
 
 	return args, nil
