@@ -24,15 +24,17 @@
 
 - `security_group_name` (string) - The security group name
 
-- `internet_charge_type` (string) - Internet charge type
+- `internet_charge_type` (string) - Internet charge type, there are two type: `BANDWIDTH_POSTPAID_BY_HOUR` and
+  `TRAFFIC_POSTPAID_BY_HOUR`.
+  The default type is `BANDWIDTH_POSTPAID_BY_HOUR`
 
 - `eip_name` (string) - Eip name
 
 - `network_capacity_in_mbps` (int) - Eip network bandwith
 
-- `root_disk_size_in_gb` (int) - RootDiskSizeInGb
+- `root_disk_size_in_gb` (int) - RootDiskSizeInGb, if not provided, the default value is 20G
 
-- `root_disk_storage_type` (string) - RootDiskStorageType
+- `root_disk_storage_type` (string) - RootDiskStorageType, if not provided, the default type is hp1
 
 - `vpc_id` (string) - The VPC id for your build process will perform in. If the field
   `use_default_network` is used. This field will be invalid
