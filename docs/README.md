@@ -42,3 +42,12 @@ directory. Upon successful compilation, a `packer-plugin-baiducloud` plugin
 binary file can be found in the work directory.
 To install the compiled plugin, please follow the official Packer documentation
 on [installing a plugin](https://www.packer.io/docs/extending/plugins/#installing-plugins).
+
+## Plugin Contents
+
+The Baiducloud plugin is intended as a starting point for creating Packer plugins, containing:
+
+### Builders
+
+- [builder](/docs/builders/bcc.mdx) - The baiducloud builder is used to create endless Packer
+  plugins using a consistent plugin structure.
