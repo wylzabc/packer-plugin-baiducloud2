@@ -34,6 +34,25 @@ The following configuration options are available for building baidu cloud image
 
 @include 'builder/bcc/BaiduCloudImageConfig-not-required.mdx'
 
+### Communicator Configuration
+
+In addition to the above options, a communicator can be configured
+for this builder.
+
+#### Optional:
+
+@include 'packer-plugin-sdk/communicator/Config-not-required.mdx'
+
+@include 'packer-plugin-sdk/communicator/SSH-not-required.mdx'
+
+@include 'packer-plugin-sdk/communicator/SSHTemporaryKeyPair-not-required.mdx'
+
+@include 'packer-plugin-sdk/communicator/SSH-Key-Pair-Name-not-required.mdx'
+
+@include 'packer-plugin-sdk/communicator/SSH-Private-Key-File-not-required.mdx'
+
+@include 'packer-plugin-sdk/communicator/SSH-Agent-Auth-not-required.mdx'
+
 ## Basic Example
 
 Here is a basic example for Baiducloud using the officially recommended HCL2 format.
@@ -145,8 +164,8 @@ Here is a basic example for Baiducloud using JSON format.
       "use_default_network": true,
       "ssh_username": "root",
       "run_tags": {
-        "Managed by": "Packer",
-        "Built by": "Packer"
+        "Managed_by": "Packer",
+        "Built_by": "Packer"
       }
     }
   ],
@@ -158,6 +177,10 @@ Here is a basic example for Baiducloud using JSON format.
   ]
 }
 ```
+
+~> Note: Images can become deprecated after a while; please go to bce console to find one that exists.
+
+~> Note: The current version does not support Windows image, which will be added later. 
 
 See the
 [examples/baiducloud](https://github.com/hashicorp/packer/tree/master/builder/baiducloud/examples)

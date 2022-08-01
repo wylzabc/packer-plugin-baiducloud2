@@ -20,8 +20,8 @@
         "network_capacity_in_mbps": 1,
         "root_disk_size_in_gb": 20,
         "run_tags": {
-          "Managed by": "Packer",
-          "Built by": "Packer"
+          "Managed_by": "Packer",
+          "Built_by": "Packer"
         }
       }
     ],
