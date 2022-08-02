@@ -57,7 +57,6 @@ for this builder.
 
 Here is a basic example for Baiducloud using the officially recommended HCL2 format.
 
-</Tab>
 <Tab heading="HCL2">
 
 ```hcl
@@ -100,13 +99,14 @@ build {
 }
 ```
 
+</Tab>
+
 If you have set `BAIDUCLOUD_ACCESS_KEY` and `BAIDUCLOUD_SECRET_KEY` environment variables,
 You can also not set `access_key` and `secret_key` fields, 
 because the plug-in can automatically read environment variables.
 
 The example is blow.
 
-</Tab>
 <Tab heading="HCL2">
 
 ```hcl
@@ -137,11 +137,12 @@ build {
 }
 ```
 
+</Tab>
+
 You can also use the JSON format configuration file, although it is being deprecated.
 
 Here is a basic example for Baiducloud using JSON format.
 
-<Tabs>
 <Tab heading="JSON">
 
 ```json
@@ -177,6 +178,8 @@ Here is a basic example for Baiducloud using JSON format.
   ]
 }
 ```
+
+</Tab>
 
 ~> Note: Images can become deprecated after a while; please go to bce console to find one that exists.
 
