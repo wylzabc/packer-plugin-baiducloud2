@@ -5,24 +5,17 @@
     },
     "builders": [
       {
-        "associate_public_ip_address": true,
-        "use_default_network": true,
         "type": "baiducloud-bcc",
         "access_key": "{{user `access_key`}}",
         "secret_key": "{{user `secret_key`}}",
         "region": "fwh",
         "zone": "cn-fwh-a",
-        "image_name": "packer-test",
         "source_image_id": "m-sDghxZu1",
-        "ssh_username": "root",
         "instance_spec": "bcc.ic4.c2m2",
-        "temporary_key_pair_name": "packer-test",
-        "network_capacity_in_mbps": 1,
-        "root_disk_size_in_gb": 20,
-        "run_tags": {
-          "Managed_by": "Packer",
-          "Built_by": "Packer"
-        }
+        "image_name": "your-packer-custom-image",
+        "associate_public_ip_address": true,
+        "use_default_network": true,
+        "ssh_username": "root"
       }
     ],
     "provisioners": [
