@@ -51,7 +51,7 @@ func Retry(ctx context.Context, fn func(context.Context) error) error {
 			}
 			if e.Code == "Instance.DeleteServerFailException" || e.Code == "SecurityGroup.InstancesAssociatedSecurityGroupCanNotBeDeleted" ||
 				e.Code == "SECURITYGROUP_INUSE" || e.Code == "NotAllowDeleteVpc" || e.Code == "NotAllowOperateSubnet" ||
-				e.Code == "ResourceNeedRelease" || e.Code == "ServiceInternalError" {
+				e.Code == "ResourceNeedRelease" || e.Code == "ServiceInternalError" || e.Code == "RateLimit" {
 				return true
 			}
 			return false
