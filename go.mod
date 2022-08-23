@@ -6,7 +6,7 @@ require (
 	github.com/baidubce/bce-sdk-go v0.9.131
 	github.com/hashicorp/hcl/v2 v2.13.0
 	github.com/hashicorp/packer-plugin-sdk v0.3.1
-	github.com/zclconf/go-cty v1.10.0
+	github.com/zclconf/go-cty v1.11.0
 )
 
 require (
